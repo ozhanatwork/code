@@ -47,4 +47,33 @@ def create_live_shared_memory_nparray(data, is_created, address_name, shape, dat
     except Exception as e:
         print(f"Error occurred: {e}")
         return None
+-------------------------------------------------------
+
+import pickle
+import numpy as np
+import shared_memory
+
+def create_live_shared_memory_nparray(data, is_created, address_name, shape, data_type, frame_time):
+    try:
+        # Create a dictionary with frame_time as key and data as value
+        data_dict = {frame_time: data}
+
+        # Serialize the dictionary into bytes
+        serialized_data = pickle.dumps(data_dict)
+
+        # Calculate the size required for the serialized data
+        d_size = len(serialized_data)
+
+        # Create shared memory
+        shm = shared_memory.SharedMemory(create=is_created, size=int(d_size), name=f"{address_name}_live")
+
+        # Copy serialized_data into the shared memory buffer
+        buf = shm.buf
+        buf[:d_size] = serialized_data
+
+        return shm
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
 
