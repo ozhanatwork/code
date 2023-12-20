@@ -77,3 +77,36 @@ def create_live_shared_memory_nparray(data, is_created, address_name, shape, dat
         print(f"Error occurred: {e}")
         return None
 
+----------------------------------
+import shared_memory
+import pickle
+
+def access_shared_memory(address_name):
+    try:
+        # Attach to the existing shared memory block
+        shm = shared_memory.SharedMemory(name=f"{address_name}_live")
+
+        # Read the data from the shared memory buffer
+        buf = shm.buf
+        serialized_data = buf[:]
+
+        # Deserialize the data from bytes to dictionary
+        data_dict = pickle.loads(serialized_data)
+
+        return data_dict
+
+    except FileNotFoundError:
+        print("Shared memory block not found.")
+        return None
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
+
+# Replace 'ADDRESS_NAME' with the actual address name used during shared memory creation
+result_dict = access_shared_memory('ADDRESS_NAME')
+
+if result_dict:
+    print("Data retrieved successfully from shared memory.")
+    print(result_dict)
+else:
+    print("Failed to retrieve data from shared memory.")
