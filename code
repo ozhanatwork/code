@@ -1,0 +1,19 @@
+def create_live_shared_memory_nparray(data, is_created, address_name, shape, data_type, frame_number, frame_time):
+    try:
+        d_size = np.dtype(data_type).itemsize * np.prod(shape) * 3
+
+        shm = shared_memory.SharedMemory(create=is_created, size=int(d_size), name=f"{address_name}_live")
+        # numpy array on shared memory buffer
+        dst = np.ndarray(shape=shape, dtype=data_type, buffer=shm.buf)
+        # handle if stream interrupts
+        if dst is not None:
+            dst[:] = data[:]
+        else:
+            print('The dst variable is None.')
+            return None  # Return None if dst is None
+
+        return shm
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None  # Return None if an exception occurs
