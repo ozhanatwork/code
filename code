@@ -17,3 +17,34 @@ def create_live_shared_memory_nparray(data, is_created, address_name, shape, dat
     except Exception as e:
         print(f"Error occurred: {e}")
         return None  # Return None if an exception occurs
+
+import numpy as np
+import shared_memory
+
+def create_live_shared_memory_nparray(data, is_created, address_name, shape, data_type, frame_time, frame_number):
+    try:
+        # Modify the shape to include space for frame_time and frame_number
+        new_shape = (shape[0] + 2, shape[1], shape[2])  # Increase dimension to store frame_time and frame_number
+
+        # Create a larger array to accommodate frame_time, frame_number, and the image data
+        combined_data = np.empty(new_shape, dtype=data_type)
+        combined_data[0, 0, 0] = frame_time  # Store frame_time
+        combined_data[1, 0, 0] = frame_number  # Store frame_number
+        combined_data[2:, :, :] = data  # Store the image data
+
+        # Calculate the size required for the combined data
+        d_size = combined_data.nbytes
+
+        # Create shared memory
+        shm = shared_memory.SharedMemory(create=is_created, size=int(d_size), name=f"{address_name}_live")
+
+        # Copy combined_data into the shared memory buffer
+        buf = shm.buf
+        buf[:d_size] = combined_data.tobytes()
+
+        return shm
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
+
